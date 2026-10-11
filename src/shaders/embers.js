@@ -29,7 +29,8 @@ vec2 fromImage(vec2 img) {
 }
 
 void main() {
-  bool near = seed.w > 0.84;
+  // uNear above 1 brings more of the embers up close, as well as brighter ("Scorching my hands")
+  bool near = seed.w > 1.0 - 0.16 * max(uNear, 1.0);
   float speed = near ? 0.16 + seed.y * 0.18 : 0.045 + seed.y * 0.07;
   float life = fract(uTime * speed + seed.z);
   float sway = sin(uTime * (0.6 + seed.y) + seed.z * 31.0);
@@ -39,7 +40,7 @@ void main() {
   if (near) {
     screen = vec2(seed.x + sway * 0.03 + life * (seed.y - 0.4) * 0.25, -0.08 + life * 1.1);
     size = (10.0 + seed.y * 26.0) * (1.0 - life * 0.55);
-    amt = uNear;
+    amt = min(uNear, 1.4);
   } else {
     float x = seed.x;
     float ridge = texture2D(uRidge, vec2(x, 0.5)).r;
