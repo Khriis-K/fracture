@@ -1,0 +1,10 @@
+{
+  "sheetsById": {
+    "Film": {
+      "staticOverrides": { "byObject": {} },
+      "sequence": { "subUnitsPerUnit": 30, "length": 242.02, "type": "PositionalSequence", "tracksByObject": {} }
+    }
+  },
+  "definitionVersion": "0.4.0",
+  "revisionHistory": []
+}

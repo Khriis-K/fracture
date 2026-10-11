@@ -1,0 +1,13 @@
+node_modules
+dist
+.captures
+__pycache__/
+
+# source material that isn't part of the site
+assets/
+
+# local tooling, not part of the site
+.claude/
+.githooks/
+scripts/hooks/
+docs/
