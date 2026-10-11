@@ -13,7 +13,7 @@ const IMG_ASPECT = 1.5;
 const UNIFORM_OF = {
   fade: 'uFade', cloud: 'uCloud', burn: 'uBurn', wildfire: 'uWildfire', smoke: 'uSmoke', ghost: 'uGhost',
   mirror: 'uMirror', ripple: 'uRipple', tide: 'uTide', sketch: 'uSketch', erase: 'uErase', sand: 'uSand',
-  ink: 'uInk', crack: 'uCrack', glassAlpha: 'uGlassAlpha', shatter: 'uShatter', frost: 'uFrost', bleed: 'uBleed', red: 'uRed',
+  ink: 'uInk', crack: 'uCrack', glassAlpha: 'uGlassAlpha', bloodRun: 'uBloodRun', bloodFilm: 'uBloodFilm', shatter: 'uShatter', frost: 'uFrost', bleed: 'uBleed', red: 'uRed',
   pulse: 'uPulse', tunnel: 'uTunnel', flash: 'uFlash', flame: 'uFlame', heat: 'uHeat', drain: 'uDrain',
 };
 
