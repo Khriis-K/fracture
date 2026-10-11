@@ -169,15 +169,20 @@ function onTilt(e) {
   pointer.x = 0.5 + tilt.x;
   pointer.y = 0.5 + tilt.y;
 }
+// Listen from the start (the title page tilts too). Browsers that ask for permission (iOS, and
+// newer Chrome) send nothing until it's granted, which can only be asked from inside a tap.
+let tiltAsked = false;
 function listenForTilt() {
   const DOE = window.DeviceOrientationEvent;
   if (!coarse || !DOE) return;
-  const listen = () => addEventListener('deviceorientation', onTilt);
-  // iOS asks first, and only from inside a tap
-  if (typeof DOE.requestPermission === 'function') {
-    DOE.requestPermission().then((s) => s === 'granted' && listen()).catch(() => {});
-  } else listen();
+  addEventListener('deviceorientation', onTilt); // the same listener is only ever added once
+  if (typeof DOE.requestPermission === 'function' && !tiltAsked) {
+    tiltAsked = true;
+    DOE.requestPermission().catch(() => {});
+  }
 }
+if (coarse && window.DeviceOrientationEvent) addEventListener('deviceorientation', onTilt);
+addEventListener('pointerdown', listenForTilt, { capture: true, once: true });
 
 // ---------- playback ----------
 let started = false;
