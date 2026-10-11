@@ -8,7 +8,7 @@ gsap.registerPlugin(SplitText);
 export const LINES = [
   { t: 18, e: 25.6, text: 'I could smell smoke / as our summer’s bridge burned',
     fx: [{ w: 'smoke', fx: 'smolder' }, { w: 'burned', fx: 'smolder', at: 2.6 }] },
-  { t: 27, e: 34.2, text: 'Admist a wildfire left behind',
+  { t: 27, e: 34.2, text: 'Amidst a wildfire left behind',
     fx: [{ w: 'wildfire', fx: 'flicker', at: 0.9 }] },
   { t: 36, e: 41.4, text: 'I could yet breathe / with the ghosts in my world',
     fx: [{ w: 'ghosts', fx: 'ghost', at: 2.0 }] },
