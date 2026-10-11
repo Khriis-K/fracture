@@ -14,7 +14,7 @@ const GROUPS = {
   fire: ['burn', 'wildfire', 'embers', 'embersNear', 'smoke', 'ghost'],
   water: ['mirror', 'ripple', 'tide'],
   paper: ['sketch', 'erase', 'sand', 'ink'],
-  glass: ['crack', 'glassAlpha', 'shatter', 'frost', 'bleed', 'bloodRun', 'bloodFilm', 'impactX', 'impactY'],
+  glass: ['crack', 'glassAlpha', 'shatter', 'frost', 'bleed', 'bloodFilm', 'impactX', 'impactY'],
   body: ['red', 'pulse', 'tunnel', 'shake', 'tremor', 'flash', 'split'],
   ending: ['flame', 'heat', 'drain'],
   sound: ['muffle', 'level', 'presence'],

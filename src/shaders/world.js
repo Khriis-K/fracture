@@ -38,7 +38,7 @@ uniform float uFade, uCloud;
 uniform float uBurn, uWildfire, uSmoke, uGhost;
 uniform float uMirror, uRipple, uTide;
 uniform float uSketch, uErase, uSand, uInk;
-uniform float uCrack, uGlassAlpha, uShatter, uFrost, uBleed, uBloodRun, uBloodFilm;
+uniform float uCrack, uGlassAlpha, uShatter, uFrost, uBleed, uBloodFilm;
 uniform vec2 uImpact;
 uniform float uRed, uPulse, uTunnel, uFlash;
 uniform float uFlame, uHeat, uDrain;
@@ -132,80 +132,6 @@ Glass glass(vec2 s) {
   float a = clamp(uGlassAlpha, 0.0, 1.0);
   g.line *= a; g.wide *= a; g.offset *= a; g.tint = mix(1.0, g.tint, a);
   return g;
-}
-
-// ---------- blood running down the glass: "I'd bleed on your absence behind the pane" ----------
-// Thin trickles leak out of the cracks around the impact and creep slowly, smoothly down the pane,
-// a bead at each tip, leaving a thinner trail. uBloodRun (0..1) is how far along the
-// run is, so scrubbing lands on the same frame. Shaded as thick, glossy liquid: a dark rim, a deep
-// translucent core with the scene glowing through, and a highlight that rides down with the tip.
-// Returns the blood's colour and coverage.
-vec4 bloodRun(vec2 s, vec3 bg) {
-  float aspect = uRes.x / uRes.y;
-  vec2 p = s * vec2(aspect, 1.0);
-  vec2 imp = uImpact * vec2(aspect, 1.0);
-  float px = 1.0 / uRes.y;
-  const float CW = 0.034;
-  float c0 = floor(p.x / CW);
-  float cover = 0.0, thick = 0.0, nx = 0.0, ny = 0.0, glint = 0.0;
-  for (int k = -1; k <= 1; k++) {
-    float c = c0 + float(k);
-    vec2 h1 = hash22(vec2(c, 3.1)), h2 = hash22(vec2(c, 7.7)), h3 = hash22(vec2(c, 12.9));
-    float cx = (c + 0.2 + 0.6 * h1.x) * CW;
-    float near = exp(-abs(cx - imp.x) * 2.2);
-    if (h1.y > 0.05 + 0.7 * near) continue;              // denser around the impact
-    // each trickle leaks out of a crack: step down the column to the first one
-    float y0 = imp.y + (h2.x - 0.3) * 0.46 * (0.4 + 0.6 * near);
-    float found = 0.0;
-    for (int j = 0; j < 5; j++) {
-      if (found > 0.0) break;
-      float yy = y0 - float(j) * 0.03;
-      if (glass(vec2(cx / aspect, yy)).wide > 0.45) { y0 = yy; found = 1.0; }
-    }
-    if (found <= 0.0) continue;
-    float start = h2.y * 0.45;
-    float q = clamp((uBloodRun - start) / (1.0 - start), 0.0, 1.0);
-    if (q <= 0.0) continue;
-    float run = q * (0.85 + 0.3 * h3.x) / 1.15;            // a steady creep, each at its own pace
-    float L = (0.1 + 0.26 * h3.y) * (0.5 + 0.5 * near) * run;
-    float yTip = y0 - L;
-    float w0 = 0.0021 + 0.0018 * h1.x * h3.y + 0.0006 * near;
-
-    // the trail, thinner where it's older
-    if (p.y <= y0 && p.y >= yTip) {
-      float path = cx + (vnoise(vec2(p.y * 6.0, c)) - 0.5) * 0.026 + sin(p.y * 17.0 + c) * 0.002;
-      float along = (y0 - p.y) / max(L, 1e-4);
-      float w = w0 * (0.45 + 0.55 * along) * (0.6 + 0.4 * smoothstep(0.0, 0.02, y0 - p.y));
-      float d = (p.x - path) / max(w, 1e-5);
-      if (abs(d) < 1.0) {
-        float th = sqrt(1.0 - d * d);
-        float a = clamp((1.0 - abs(d)) * w / px, 0.0, 1.0);
-        if (th > thick) {
-          thick = th; nx = d; ny = 0.0;
-          glint = 0.35 + 0.65 * smoothstep(0.55, 1.0, sin((p.y - yTip) * 38.0 + c * 1.7));
-        }
-        cover = max(cover, a);
-      }
-    }
-    // the bead at the tip, heavier while it waits
-    float bx = cx + (vnoise(vec2(yTip * 6.0, c)) - 0.5) * 0.026 + sin(yTip * 17.0 + c) * 0.002;
-    float rb = w0 * 1.5 * min(1.0, q * 10.0);
-    vec2 e = (p - vec2(bx, yTip + rb * 0.3)) / vec2(rb, rb * 1.3);
-    float r2 = dot(e, e);
-    if (r2 < 1.0) {
-      float th = sqrt(1.0 - r2);
-      float a = clamp((1.0 - sqrt(r2)) * rb / px, 0.0, 1.0);
-      if (th > thick) { thick = th; nx = e.x; ny = e.y; glint = 1.0; }
-      cover = max(cover, a);
-    }
-  }
-  if (cover <= 0.0) return vec4(0.0);
-  vec3 deep = bg * vec3(0.62, 0.05, 0.06) + vec3(0.1, 0.0, 0.012);
-  vec3 c = mix(deep, vec3(0.13, 0.0, 0.012), pow(1.0 - thick, 2.0) * 0.85);
-  // a small, sharp highlight from the upper left: a streak down the trail, a point on the bead
-  float spec = (ny == 0.0 ? exp(-pow(nx + 0.4, 2.0) / 0.03) : exp(-(pow(nx + 0.42, 2.0) + pow(ny - 0.4, 2.0)) / 0.035)) * glint;
-  c += vec3(1.0, 0.86, 0.84) * spec * 0.6;
-  return vec4(c, cover);
 }
 
 void main() {
@@ -409,10 +335,6 @@ void main() {
       vec2 fp = s * vec2(aspect, 1.0);
       float smear = 0.6 + 0.4 * smoothstep(0.25, 0.75, fbm(vec2(fp.x * 6.0, fp.y * 0.9 + 4.0)));
       col = mix(col, col * vec3(0.85, 0.15, 0.16) + vec3(0.04, 0.0, 0.004), uBloodFilm * ga * smear);
-    }
-    if (uBloodRun > 0.0) {
-      vec4 b = bloodRun(s, col);
-      col = mix(col, b.rgb, b.a * ga);
     }
   }
 

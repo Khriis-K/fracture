@@ -128,8 +128,11 @@ export class Soundscape {
     this.wet = g(0);
     this.reverb = ctx.createConvolver();
     this.reverb.buffer = impulse(ctx);
-    this.level.connect(this.dry);
-    this.level.connect(this.reverb);
+    // the song ducks for a moment on each heartbeat, so the beat punches through it (pump())
+    this.duck = g(1);
+    this.level.connect(this.duck);
+    this.duck.connect(this.dry);
+    this.duck.connect(this.reverb);
     this.reverb.connect(this.wet);
     this.dry.connect(this.master);
     this.wet.connect(this.master);
@@ -306,12 +309,20 @@ export class Soundscape {
     });
   }
 
-  // dry: skip the reverb (sounds from inside the body)
-  play(name, { gain = 1, pos = null, rate = 1, offset = 0, dur, pan = 0, lp = 0, dry = false } = {}) {
+  // Duck the song by `db` at time t and let it swell back, like a sidechain pump.
+  pump(t, db) {
+    const g = this.duck.gain;
+    g.setTargetAtTime(10 ** (-db / 20), t, 0.006);
+    g.setTargetAtTime(1, t + 0.08, 0.11);
+  }
+
+  // dry: skip the reverb (sounds from inside the body). pump: duck the song (dB) under it
+  play(name, { gain = 1, pos = null, rate = 1, offset = 0, dur, pan = 0, lp = 0, dry = false, pump = 0 } = {}) {
     if (!this.ctx) return;
     const ctx = this.ctx;
     const bus = dry ? this.sfxDry : this.sfx;
     const t0 = ctx.currentTime + 0.005;
+    if (pump) this.pump(t0, pump);
     const out = ctx.createGain();
     out.gain.value = gain;
     let input = out;
@@ -352,6 +363,15 @@ export class Soundscape {
 
 // ---------- synthesized stand-ins ----------
 
+let DRIVE = null;
+function driveCurve() {
+  if (!DRIVE) {
+    DRIVE = new Float32Array(1024);
+    for (let i = 0; i < 1024; i++) DRIVE[i] = Math.tanh(((i / 1023) * 2 - 1) * 3.5);
+  }
+  return DRIVE;
+}
+
 const SYNTH = {
   // a resonant water "plip": fast upward pitch sweep, quick decay
   drop(ctx, out, t, rate) {
@@ -383,6 +403,32 @@ const SYNTH = {
     };
     thump(t, 62, 0.9);
     thump(t + 0.24, 52, 0.6);
+  },
+  // The body of the heartbeat, under the sampled lub-dub (0.17 s apart, like the sample): a sub
+  // thump that drops in pitch, felt in the chest, plus a driven copy whose overtones carry the
+  // beat on small speakers that can't play the sub itself.
+  heartSub(ctx, out, t, rate) {
+    const shaper = ctx.createWaveShaper();
+    shaper.curve = driveCurve();
+    const tone = ctx.createBiquadFilter();
+    tone.type = 'lowpass';
+    tone.frequency.value = 340;
+    const drive = ctx.createGain();
+    drive.gain.value = 0.4;
+    shaper.connect(tone); tone.connect(drive); drive.connect(out);
+    const hit = (at, f, amp, len) => {
+      const o = ctx.createOscillator();
+      const e = ctx.createGain();
+      o.frequency.setValueAtTime(f * rate, at);
+      o.frequency.exponentialRampToValueAtTime(f * 0.58 * rate, at + 0.13);
+      e.gain.setValueAtTime(0, at);
+      e.gain.linearRampToValueAtTime(amp, at + 0.007);
+      e.gain.exponentialRampToValueAtTime(0.001, at + len);
+      o.connect(e); e.connect(out); e.connect(shaper);
+      o.start(at); o.stop(at + len + 0.02);
+    };
+    hit(t, 72, 0.8, 0.3);
+    hit(t + 0.17, 60, 0.56, 0.34);
   },
   // the sub-bass hit under "bone cracks" (and, deeper, the bullet)
   thump(ctx, out, t, rate) {

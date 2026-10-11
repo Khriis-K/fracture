@@ -107,6 +107,11 @@ const SHOTS = [
 // in front, muffled the way sound through the body is, with none of the room's
 // reverb. On phones it's also felt (see the haptics section below).
 const CHEST = { pos: [0, -0.45, -0.12], lp: 900, dry: true };
+// Each beat is the sample plus its body (audio.js heartSub), and the song ducks under it.
+function beat(out, b, gain, rate, body, pump) {
+  out.push([b, 'heartbeat', { gain, rate, ...CHEST }]);
+  out.push([b, 'heartSub', { gain: body, rate, ...CHEST, pump }]);
+}
 function heartbeats() {
   const out = [];
   const beats = beatData.beats;
@@ -114,17 +119,17 @@ function heartbeats() {
   for (const b of beats) {
     if (b >= 161.9 && b < HOLD_UNTIL) {
       const k = (b - 162) / (HOLD_UNTIL - 162);
-      out.push([b, 'heartbeat', { gain: 0.28 + Math.min(1, k) * 0.3, ...CHEST }]);
+      beat(out, b, 0.28 + Math.min(1, k) * 0.3, 1, 0.35 + Math.min(1, k) * 0.3, 2.5 + Math.min(1, k) * 2.5);
       lubDub(b, 0.45 + 0.55 * Math.min(1, k), 60 + 45 * Math.min(1, k));
     } else if (b >= HOLD_UNTIL + 0.3 && b < 185.3) { // the first beat after "cracks" stays silent
       if (hushIndex++ % 2 === 0) {
-        out.push([b, 'heartbeat', { gain: 0.5 - (b - HOLD_UNTIL) * 0.03, rate: 0.97, ...CHEST }]);
+        beat(out, b, 0.5 - (b - HOLD_UNTIL) * 0.03, 0.97, 0.6 - (b - HOLD_UNTIL) * 0.04, 3);
         lubDub(b, 0.35, 40);
       }
     } else if (b >= 185.3 && b < 213.5) {
       if (Math.round((b - 185.52) / (60 / beatData.bpm)) % 2 === 0) {
         const fade = 1 - Math.max(0, (b - 205) / 8.5);
-        out.push([b, 'heartbeat', { gain: 0.15 * fade, rate: 0.95, ...CHEST }]);
+        beat(out, b, 0.15 * fade, 0.95, 0.2 * fade, 1.2 * fade);
       }
     }
   }

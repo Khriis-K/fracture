@@ -27,7 +27,7 @@ export const DEFAULTS = {
   burn: 0, wildfire: 0, embers: 0, embersNear: 0, smoke: 0, ghost: 0,
   mirror: 0, ripple: 0.5, tide: 0,
   sketch: 0, erase: 0, sand: 0, ink: 0,
-  crack: 0, glassAlpha: 1, shatter: 0, frost: 0, bleed: 0, bloodRun: 0, bloodFilm: 0, impactX: 0.7, impactY: 0.38,
+  crack: 0, glassAlpha: 1, shatter: 0, frost: 0, bleed: 0, bloodFilm: 0, impactX: 0.7, impactY: 0.38,
   red: 0, pulse: 0, tunnel: 0, shake: 0, tremor: 0, flash: 0, split: 0,
   flame: 0, heat: 0, drain: 0,
   muffle: 0, level: 0, presence: 0,
@@ -81,9 +81,7 @@ export const TRACKS = {
   impactY: [[0, 0.38], [162.5, 0.38, 'none'], [162.6, 0.5, 'none']],
   frost: [[147.6, 0], [150, 0.85], [151.7, 0.85], [152.4, 0]],
   bleed: [[155.6, 0], [158.5, 0.8], [161, 1], [162.6, 1], [162.65, 0]],
-  // blood runs down the glass from "bleed" (156.35), and by "pane" the pane is smeared red;
-  // it all fades with the glass (glassAlpha) into the bridge's red
-  bloodRun: [[156.2, 0], [161.6, 1, 'none'], [162.6, 1], [162.65, 0]],
+  // by "pane" the glass is smeared red; it fades with the glass (glassAlpha) into the bridge's red
   bloodFilm: [[157.5, 0], [161, 0.6, 'power1.in'], [162.6, 0.6], [162.65, 0]],
 
   // V — the bridge: "tonight my body's under attack"
