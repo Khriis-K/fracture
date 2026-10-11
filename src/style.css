@@ -291,6 +291,15 @@ html, body {
 .ctl:hover, .ctl:focus-visible { opacity: 1; outline: none; }
 .ctl[hidden] { display: none; }
 .ctl svg { width: 20px; height: 20px; fill: currentColor; }
+/* the title page's own way into fullscreen, top right */
+.intro-fs {
+  position: absolute;
+  top: max(14px, env(safe-area-inset-top));
+  right: max(14px, env(safe-area-inset-right));
+  width: 44px;
+  height: 44px;
+  opacity: 0.6;
+}
 #play .i-play { display: none; }
 #play.paused .i-play { display: block; }
 #play.paused .i-pause { display: none; }

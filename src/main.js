@@ -330,11 +330,15 @@ scrub.addEventListener('input', () => {
 });
 // The way back into fullscreen after leaving it (on phones too). Hidden where
 // a page can't go fullscreen at all, like iPhone Safari (videos only).
-if (!document.fullscreenEnabled) $('#fs').hidden = true;
-$('#fs').addEventListener('click', () => {
-  if (document.fullscreenElement) document.exitFullscreen();
-  else document.documentElement.requestFullscreen?.({ navigationUI: 'hide' })?.catch(() => {});
-});
+// The title page has one too.
+for (const id of ['#fs', '#fs-intro']) {
+  const btn = $(id);
+  if (!document.fullscreenEnabled) { btn.hidden = true; continue; }
+  btn.addEventListener('click', () => {
+    if (document.fullscreenElement) document.exitFullscreen();
+    else document.documentElement.requestFullscreen?.({ navigationUI: 'hide' })?.catch(() => {});
+  });
+}
 
 addEventListener('keydown', (e) => {
   if (!started || e.target.closest?.('input, [contenteditable]')) return;
