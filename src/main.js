@@ -248,9 +248,12 @@ scrub.addEventListener('input', () => {
   seek(+scrub.value);
   if (studio && theatre) theatre.sequence.position = +scrub.value;
 });
+// The way back into fullscreen after leaving it (on phones too). Hidden where
+// a page can't go fullscreen at all, like iPhone Safari (videos only).
+if (!document.fullscreenEnabled) $('#fs').hidden = true;
 $('#fs').addEventListener('click', () => {
   if (document.fullscreenElement) document.exitFullscreen();
-  else document.documentElement.requestFullscreen?.().catch(() => {});
+  else document.documentElement.requestFullscreen?.({ navigationUI: 'hide' })?.catch(() => {});
 });
 
 addEventListener('keydown', (e) => {

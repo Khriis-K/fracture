@@ -276,6 +276,7 @@ html, body {
   opacity: 0.8;
 }
 .ctl:hover, .ctl:focus-visible { opacity: 1; outline: none; }
+.ctl[hidden] { display: none; }
 .ctl svg { width: 20px; height: 20px; fill: currentColor; }
 #play .i-play { display: none; }
 #play.paused .i-play { display: block; }
@@ -319,5 +320,4 @@ body.idle { cursor: none; }
 
 @media (max-width: 640px) {
   #lyrics, #title { top: 38%; }
-  #fs { display: none; }
 }
