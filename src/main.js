@@ -265,7 +265,7 @@ $('#begin').addEventListener('click', (e) => {
   world.addRipple(ix, 0.19, 2.6);
   setTimeout(() => world.addRipple(ix, 0.19, 1.2), 260);
   gsap.timeline().to(pre, { lift: 1, duration: 0.5, ease: 'sine.out' }).to(pre, { lift: 0, duration: 1.8, ease: 'sine.in' }, 1.0);
-  soundscape.play('crack', { gain: 0.7, offset: 0.13 });
+  soundscape.play('strain');
   if (titleBeat.on) { titleBeat.left = 3; titleBeat.gain *= 0.75; }
   gsap.to(introTitle, { y: -26, opacity: 0, filter: 'blur(10px)', duration: 1.5, ease: 'power2.in' });
   $('#intro').classList.add('hidden');

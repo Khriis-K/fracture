@@ -430,6 +430,27 @@ const SYNTH = {
     hit(t, 72, 0.8, 0.3);
     hit(t + 0.17, 60, 0.56, 0.34);
   },
+  // Glass under strain giving way: a quick run of tiny, bright clicks (the Begin tap).
+  strain(ctx, out, t) {
+    const noise = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * 0.04), ctx.sampleRate);
+    const d = noise.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    for (let i = 0; i < 9; i++) {
+      const len = 0.004 + Math.random() * 0.01;
+      const s = ctx.createBufferSource();
+      s.buffer = noise;
+      const bp = ctx.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.frequency.value = 2500 + Math.random() * 5000;
+      bp.Q.value = 2.5;
+      const e = ctx.createGain();
+      e.gain.setValueAtTime(0.5 + Math.random() * 0.5, t);
+      e.gain.exponentialRampToValueAtTime(0.001, t + len);
+      s.connect(bp); bp.connect(e); e.connect(out);
+      s.start(t); s.stop(t + len + 0.01);
+      t += 0.012 + Math.random() * 0.04;
+    }
+  },
   // the sub-bass hit under "bone cracks" (and, deeper, the bullet)
   thump(ctx, out, t, rate) {
     const o = ctx.createOscillator();
