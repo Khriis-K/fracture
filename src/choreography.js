@@ -70,11 +70,12 @@ export const TRACKS = {
   crack: [[134.98, 0], [135.6, 0.55, 'expo.out'], [140, 0.7], [151.8, 0.75], [152.6, 1.05, 'expo.out'], [161.7, 1.05], [162.1, 0, 'power2.in'],
     // "bullet": a bullet-hole fracture from the centre
     [172.92, 0], [173.0, 0.8, 'expo.out'], [174.5, 0.65], [176, 0],
-    // "until bone cracks"
-    [181.4, 0], [182.015, 1.1, 'expo.out'], [184.3, 1.1], [185.2, 0]],
-  shatter: [[139.6, 0], [140.6, 0.6, 'expo.out'], [151.8, 0.55], [153, 1, 'expo.out'], [161.7, 1], [162.1, 0], [181.4, 0], [182.115, 0.7, 'expo.out'], [184.3, 0.7], [185.2, 0]],
+    // "until bone cracks": the glass breaks as the giant word lands (181.97) and splits (+0.11)
+    [181.96, 0], [182.08, 1.1, 'expo.out'], [184.3, 1.1], [185.2, 0]],
+  shatter: [[139.6, 0], [140.6, 0.6, 'expo.out'], [151.8, 0.55], [153, 1, 'expo.out'], [161.7, 1], [162.1, 0], [182.07, 0], [182.5, 0.7, 'expo.out'], [184.3, 0.7], [185.2, 0]],
   impactX: [[0, 0.7], [162.5, 0.7, 'none'], [162.6, 0.5, 'none']],
-  impactY: [[0, 0.38], [162.5, 0.38, 'none'], [162.6, 0.4, 'none']],
+  // the bridge's breaks come from the middle of the screen, where the giant words are
+  impactY: [[0, 0.38], [162.5, 0.38, 'none'], [162.6, 0.5, 'none']],
   frost: [[147.6, 0], [150, 0.85], [151.7, 0.85], [152.4, 0]],
   bleed: [[155.6, 0], [158.5, 0.8], [161, 1], [162.1, 0]],
 
