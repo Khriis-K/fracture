@@ -123,9 +123,10 @@ document.addEventListener('visibilitychange', () => {
 });
 
 // ---------- the phone's tilt ----------
-// Tilting the phone moves the horizon a little, like the pointer does on
-// desktop. The rest position drifts toward however the phone is being held.
-const tilt = { rest: null };
+// Tilting the phone moves the picture a little, as if looking past the edge of a
+// window (the mouse doesn't: on desktop the picture holds still). The rest
+// position drifts toward however the phone is being held.
+const tilt = { rest: null, x: 0, y: 0, sx: 0, sy: 0 };
 function onTilt(e) {
   if (e.beta == null || e.gamma == null) return;
   const a = ((screen.orientation?.angle ?? window.orientation ?? 0) * Math.PI) / 180;
@@ -135,8 +136,10 @@ function onTilt(e) {
   tilt.rest.x += (x - tilt.rest.x) * 0.004;
   tilt.rest.y += (y - tilt.rest.y) * 0.004;
   const clamp = (v) => Math.max(-0.5, Math.min(0.5, v));
-  pointer.x = 0.5 + clamp((x - tilt.rest.x) / 40);
-  pointer.y = 0.5 + clamp((y - tilt.rest.y) / 40);
+  tilt.x = clamp((x - tilt.rest.x) / 40);
+  tilt.y = clamp((y - tilt.rest.y) / 40);
+  pointer.x = 0.5 + tilt.x;
+  pointer.y = 0.5 + tilt.y;
 }
 function listenForTilt() {
   const DOE = window.DeviceOrientationEvent;
@@ -363,9 +366,15 @@ function renderFrame() {
     v.cloud = v.cloud * (1 - pre.k) + 0.35 * pre.k;
   }
 
-  // the pointer / tilt only turns the listener's head; the picture never pans
+  // the pointer / tilt turns the listener's head; only the phone's tilt moves the picture
   pointer.sx += ((pointer.x - 0.5) - pointer.sx) * 0.03;
-  pinImpact(t);
+  pinImpact(t); // before the tilt, so the glass stays put on the screen while the world behind it moves
+  tilt.sx += (tilt.x - tilt.sx) * 0.03;
+  tilt.sy += (tilt.y - tilt.sy) * 0.03;
+  if (!reducedMotion) {
+    v.focusX += tilt.sx * 0.006;
+    v.focusY -= tilt.sy * 0.006 * 0.6;
+  }
   current = v;
   // the listener's head turns a little with the pointer / the phone's tilt
   soundscape.setHeading(pointer.sx * 0.35);
