@@ -148,6 +148,29 @@ export class World {
     return [(x / w - 0.5) * sx + fx, (1 - y / h - 0.5) * sy + fy];
   }
 
+  // Screen uv (y up) <-> image uv for a screen of aspect a, mirroring the shader's toImage().
+  static view(a, v) {
+    let sx = 1, sy = 1;
+    if (a > IMG_ASPECT) sy = IMG_ASPECT / a; else sx = a / IMG_ASPECT;
+    const z = Math.max(0.8, v.zoom);
+    sx /= z; sy /= z;
+    const fx = Math.min(Math.max(v.focusX, sx / 2), 1 - sx / 2);
+    const fy = Math.min(Math.max(v.focusY, sy / 2), 1 - sy / 2);
+    return { sx, sy, fx, fy };
+  }
+
+  static toImage(x, y, a, v) {
+    const { sx, sy, fx, fy } = World.view(a, v);
+    return [(x - 0.5) * sx + fx, (y - 0.5) * sy + fy];
+  }
+
+  static toScreen(ix, iy, a, v) {
+    const { sx, sy, fx, fy } = World.view(a, v);
+    return [(ix - fx) / sx + 0.5, (iy - fy) / sy + 0.5];
+  }
+
+  get aspect() { return this.uniforms.uRes.value.x / this.uniforms.uRes.value.y; }
+
   addRipple(ix, iy, strength = 1) {
     if (iy > 0.228) return false; // only the lake ripples
     const r = this.ripples[this.rippleIndex];

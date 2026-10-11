@@ -322,6 +322,25 @@ function frame() {
   renderFrame();
 }
 
+// The chorus's glass breaks over the gap in the clouds. Its impact is keyed for a
+// 16:9 screen; on any other shape it's pinned to the same spot on the photo, and
+// narrow (portrait) screens pan over so that spot is in view.
+const KEYED_ASPECT = 16 / 9;
+const GLASS_ENDS = 162.5; // after this the impact is the bullet, centred on screen
+function pinImpact(t) {
+  if (t >= GLASS_ENDS) return;
+  const [ix, iy] = World.toImage(v.impactX, v.impactY, KEYED_ASPECT, v);
+  const a = world.aspect;
+  if (a < 1) {
+    const pan = Math.min(1, Math.max(0, (t - 129) / 6)) * (1 - Math.min(1, Math.max(0, (t - 161.7) / 0.4)));
+    if (pan > 0) {
+      const { sx } = World.view(a, v);
+      v.focusX += (ix - (0.62 - 0.5) * sx - v.focusX) * pan; // the impact a little right of centre
+    }
+  }
+  [v.impactX, v.impactY] = World.toScreen(ix, iy, a, v);
+}
+
 // On each of the four hits the world freezes for a moment while only the word
 // moves (a "hit-stop"): the world's clock stops, the film's doesn't.
 const HIT_STOP = 0.085;
@@ -354,6 +373,7 @@ function renderFrame() {
   const px = reducedMotion ? 0 : 0.006;
   v.focusX += pointer.sx * px;
   v.focusY -= pointer.sy * px * 0.6;
+  pinImpact(t);
   current = v;
   // the listener's head turns a little with the pointer / the phone's tilt
   soundscape.setHeading(pointer.sx * 0.35);

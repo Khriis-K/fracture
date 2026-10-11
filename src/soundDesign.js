@@ -75,8 +75,10 @@ const SHOTS = [
   [52, 'thunder', { gain: 0.1, offset: 12, dur: 11, pan: -0.5, lp: 700 }],
   // "impressions on paper"
   [104, 'page', { gain: 0.08, lp: 6000 }],
-  // "Glass shatters under weight of what we built"
-  [136.25, 'crack', { gain: 0.28, lp: 5000 }],
+  // "Glass shatters under weight of what we built": the pane breaks at 2:15, full and bright,
+  // with a lower layer for weight. offset skips the file's 0.13 s of lead-in, so it lands on the beat.
+  [135, 'crack', { gain: 1, offset: 0.13 }],
+  [135, 'crack', { gain: 0.55, offset: 0.13, rate: 0.78, lp: 3500 }],
   // "In choosing the window to break your chain" — the pane gives way
   [152.55, 'crack', { gain: 0.3, rate: 0.82, lp: 4200 }],
   [152.75, 'crack', { gain: 0.14, rate: 1.08, lp: 4200, pan: 0.3 }],

@@ -64,7 +64,7 @@ export const TRACKS = {
   ink: [[119, 0], [120.6, 0.3], [124, 0.75], [127.4, 0.6], [131, 0]],
 
   // IV — "Glass shatters … glass shards … mirror grows opaque … the window … behind the pane"
-  crack: [[135.6, 0], [136.3, 0.55, 'expo.out'], [140, 0.7], [151.8, 0.75], [152.6, 1.05, 'expo.out'], [161.7, 1.05], [162.1, 0, 'power2.in'],
+  crack: [[134.98, 0], [135.6, 0.55, 'expo.out'], [140, 0.7], [151.8, 0.75], [152.6, 1.05, 'expo.out'], [161.7, 1.05], [162.1, 0, 'power2.in'],
     // "bullet": a bullet-hole fracture from the centre
     [172.92, 0], [173.0, 0.8, 'expo.out'], [174.5, 0.65], [176, 0],
     // "until bone cracks"
@@ -102,7 +102,8 @@ export const TRACKS = {
     [182.065, 0.1, 'expo.out'], [182.9, 0.85], [184.6, 0.85], [185.15, 0, 'power2.out']],
   // the song's level in dB: the crescendo starts low and peaks on "bul" (a limiter keeps the +3 clean)
   // A half-breath of nothing before "attack" and "bul" makes the hits land harder.
-  level: [[165.3, 0], [165.42, -7, 'power2.in'], [165.5, 0, 'expo.out'], [169.4, 0], [170.0, -6],
+  // The song also steps back under the glass breaking (135) so the crack cuts through.
+  level: [[134.9, 0], [135.0, -5, 'expo.out'], [135.9, -1.5], [137, 0], [165.3, 0], [165.42, -7, 'power2.in'], [165.5, 0, 'expo.out'], [169.4, 0], [170.0, -6],
     [172.8, 2.4, 'power2.in'], [172.9, -5, 'power2.in'], [172.95, 3, 'expo.out'], [173.7, 1.5], [175, 0]],
   // the voice comes forward (a presence lift, up to +6 dB around 2.8 kHz) into "bul"
   presence: [[169.8, 0], [172.93, 1, 'power1.in'], [174, 0.35], [175.5, 0]],
