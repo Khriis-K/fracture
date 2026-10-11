@@ -126,7 +126,9 @@ document.addEventListener('visibilitychange', () => {
 // Tilting the phone moves the picture a little, as if looking past the edge of a
 // window (the mouse doesn't: on desktop the picture holds still). The rest
 // position drifts toward however the phone is being held.
-const tilt = { rest: null, x: 0, y: 0, sx: 0, sy: 0 };
+const tilt = { rest: null, x: 0, y: 0, sx: 0, sy: 0, k: 0 };
+// how far the picture moves at full tilt (a fraction of the screen), and the zoom that leaves room for it
+const TILT_SHIFT = 0.08, TILT_OVERSCAN = 1.06;
 function onTilt(e) {
   if (e.beta == null || e.gamma == null) return;
   const a = ((screen.orientation?.angle ?? window.orientation ?? 0) * Math.PI) / 180;
@@ -369,11 +371,14 @@ function renderFrame() {
   // the pointer / tilt turns the listener's head; only the phone's tilt moves the picture
   pointer.sx += ((pointer.x - 0.5) - pointer.sx) * 0.03;
   pinImpact(t); // before the tilt, so the glass stays put on the screen while the world behind it moves
-  tilt.sx += (tilt.x - tilt.sx) * 0.03;
-  tilt.sy += (tilt.y - tilt.sy) * 0.03;
-  if (!reducedMotion) {
-    v.focusX += tilt.sx * 0.006;
-    v.focusY -= tilt.sy * 0.006 * 0.6;
+  tilt.sx += (tilt.x - tilt.sx) * 0.06;
+  tilt.sy += (tilt.y - tilt.sy) * 0.06;
+  tilt.k += ((tilt.rest && !reducedMotion ? 1 : 0) - tilt.k) * 0.02; // eases in with the first reading
+  if (tilt.k > 0.001) {
+    v.zoom *= 1 + (TILT_OVERSCAN - 1) * tilt.k;
+    const { sx, sy } = World.view(world.aspect, v);
+    v.focusX += tilt.sx * TILT_SHIFT * sx * tilt.k;
+    v.focusY -= tilt.sy * TILT_SHIFT * sy * tilt.k;
   }
   current = v;
   // the listener's head turns a little with the pointer / the phone's tilt
