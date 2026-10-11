@@ -27,7 +27,7 @@ export const DEFAULTS = {
   burn: 0, wildfire: 0, embers: 0, embersNear: 0, smoke: 0, ghost: 0,
   mirror: 0, ripple: 0.5, tide: 0,
   sketch: 0, erase: 0, sand: 0, ink: 0,
-  crack: 0, shatter: 0, frost: 0, bleed: 0, impactX: 0.7, impactY: 0.38,
+  crack: 0, glassAlpha: 1, shatter: 0, frost: 0, bleed: 0, impactX: 0.7, impactY: 0.38,
   red: 0, pulse: 0, tunnel: 0, shake: 0, tremor: 0, flash: 0, split: 0,
   flame: 0, heat: 0, drain: 0,
   muffle: 0, level: 0, presence: 0,
@@ -67,17 +67,20 @@ export const TRACKS = {
   ink: [[119, 0], [120.6, 0.3], [124, 0.75], [127.4, 0.6], [131, 0]],
 
   // IV — "Glass shatters … glass shards … mirror grows opaque … the window … behind the pane"
-  crack: [[134.98, 0], [135.6, 0.55, 'expo.out'], [140, 0.7], [151.8, 0.75], [152.6, 1.05, 'expo.out'], [161.7, 1.05], [162.1, 0, 'power2.in'],
+  crack: [[134.98, 0], [135.6, 0.55, 'expo.out'], [140, 0.7], [151.8, 0.75], [152.6, 1.05, 'expo.out'], [162.6, 1.05], [162.65, 0],
     // "bullet": a bullet-hole fracture from the centre
-    [172.92, 0], [173.0, 0.8, 'expo.out'], [174.5, 0.65], [176, 0],
+    [172.92, 0], [173.0, 0.8, 'expo.out'], [176.1, 0.8], [176.15, 0],
     // "until bone cracks": the glass breaks as the giant word lands (181.97) and splits (+0.11)
-    [181.96, 0], [182.08, 1.1, 'expo.out'], [184.3, 1.1], [185.2, 0]],
-  shatter: [[139.6, 0], [140.6, 0.6, 'expo.out'], [151.8, 0.55], [153, 1, 'expo.out'], [161.7, 1], [162.1, 0], [182.07, 0], [182.5, 0.7, 'expo.out'], [184.3, 0.7], [185.2, 0]],
+    [181.96, 0], [182.08, 1.1, 'expo.out'], [185.3, 1.1], [185.35, 0]],
+  // the cracks never shrink back: they hold their shape and fade out (crack resets once they're gone)
+  glassAlpha: [[161.6, 1], [162.1, 0, 'power2.in'], [162.65, 0], [162.7, 1], [174.2, 1], [176, 0], [176.15, 0], [176.2, 1],
+    [184.3, 1], [185.2, 0], [185.35, 0], [185.4, 1]],
+  shatter: [[139.6, 0], [140.6, 0.6, 'expo.out'], [151.8, 0.55], [153, 1, 'expo.out'], [162.6, 1], [162.65, 0], [182.07, 0], [182.5, 0.7, 'expo.out'], [185.3, 0.7], [185.35, 0]],
   impactX: [[0, 0.7], [162.5, 0.7, 'none'], [162.6, 0.5, 'none']],
   // the bridge's breaks come from the middle of the screen, where the giant words are
   impactY: [[0, 0.38], [162.5, 0.38, 'none'], [162.6, 0.5, 'none']],
   frost: [[147.6, 0], [150, 0.85], [151.7, 0.85], [152.4, 0]],
-  bleed: [[155.6, 0], [158.5, 0.8], [161, 1], [162.1, 0]],
+  bleed: [[155.6, 0], [158.5, 0.8], [161, 1], [162.6, 1], [162.65, 0]],
 
   // V — the bridge: "tonight my body's under attack"
   red: [[161.7, 0], [162.05, 1, 'expo.out'], [182.3, 1], [184, 0.5], [185.4, 0]],

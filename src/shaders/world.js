@@ -38,7 +38,7 @@ uniform float uFade, uCloud;
 uniform float uBurn, uWildfire, uSmoke, uGhost;
 uniform float uMirror, uRipple, uTide;
 uniform float uSketch, uErase, uSand, uInk;
-uniform float uCrack, uShatter, uFrost, uBleed;
+uniform float uCrack, uGlassAlpha, uShatter, uFrost, uBleed;
 uniform vec2 uImpact;
 uniform float uRed, uPulse, uTunnel, uFlash;
 uniform float uFlame, uHeat, uDrain;
@@ -128,6 +128,9 @@ Glass glass(vec2 s) {
   vec2 h = hash22(id) - 0.5;
   g.offset = h * 0.045 * uShatter * g.inside * smoothstep(0.0, 0.06, r);
   g.tint = 1.0 + (hash21(id + 7.0) - 0.5) * 0.28 * (0.3 + uShatter) * g.inside;
+  // fading out: the whole pane dissolves in place rather than the cracks shrinking back
+  float a = clamp(uGlassAlpha, 0.0, 1.0);
+  g.line *= a; g.wide *= a; g.offset *= a; g.tint = mix(1.0, g.tint, a);
   return g;
 }
 
