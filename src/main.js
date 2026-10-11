@@ -323,22 +323,18 @@ function frame() {
 }
 
 // The chorus's glass breaks over the gap in the clouds. Its impact is keyed for a
-// 16:9 screen; on any other shape it's pinned to the same spot on the photo, and
-// narrow (portrait) screens pan over so that spot is in view.
+// 16:9 screen; on any other shape it's pinned to the same spot on the photo. On a
+// portrait phone that spot is just off the right edge, so the impact slides in to
+// the nearest glow that is in view (the camera never pans for it).
 const KEYED_ASPECT = 16 / 9;
 const GLASS_ENDS = 162.5; // after this the impact is the bullet, centred on screen
+const IMPACT_MAX_X = 0.72;
 function pinImpact(t) {
   if (t >= GLASS_ENDS) return;
   const [ix, iy] = World.toImage(v.impactX, v.impactY, KEYED_ASPECT, v);
-  const a = world.aspect;
-  if (a < 1) {
-    const pan = Math.min(1, Math.max(0, (t - 129) / 6)) * (1 - Math.min(1, Math.max(0, (t - 161.7) / 0.4)));
-    if (pan > 0) {
-      const { sx } = World.view(a, v);
-      v.focusX += (ix - (0.62 - 0.5) * sx - v.focusX) * pan; // the impact a little right of centre
-    }
-  }
-  [v.impactX, v.impactY] = World.toScreen(ix, iy, a, v);
+  const [x, y] = World.toScreen(ix, iy, world.aspect, v);
+  v.impactX = Math.min(x, IMPACT_MAX_X);
+  v.impactY = y;
 }
 
 // On each of the four hits the world freezes for a moment while only the word
