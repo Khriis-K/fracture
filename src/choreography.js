@@ -44,10 +44,14 @@ export const TRACKS = {
   cloud: [[0, 0.45], [18, 0.7], [52, 1.1], [81, 1.5], [92, 1.0], [127, 1.2], [162, 1.9], [182.4, 0.15], [185, 1.0], [214, 0.6], [242, 0.15]],
 
   // I — "I could smell smoke as our summer's bridge burned / Amidst a wildfire"
-  burn: [[14, 0], [18.5, 0.45], [22, 0.75], [27, 0.85], [31, 1], [36, 0.6], [44, 0.3], [52, 0.12], [60, 0]],
-  wildfire: [[23, 0], [27.4, 1, 'power2.out'], [33, 0.9], [38, 0.35], [47, 0]],
-  embers: [[15, 0], [20, 0.55], [27.5, 1], [34, 0.85], [40, 0.45], [50, 0]],
-  smoke: [[17, 0], [23, 0.45], [30, 0.7], [40, 0.55], [52, 0]],
+  // …and it's burning again when the world comes back after the panic attack ("But I refuse to let your
+  // image break"), catching under the dark so it's already ablaze as the fade lifts (184.5–186.5), then
+  // dying down around "My faith sheltered your flame", leaving only that flame.
+  burn: [[14, 0], [18.5, 0.45], [22, 0.75], [27, 0.85], [31, 1], [36, 0.6], [44, 0.3], [52, 0.12], [60, 0],
+    [183.8, 0], [186, 0.85], [190, 1], [193, 0.75], [197, 0.3], [201, 0]],
+  wildfire: [[23, 0], [27.4, 1, 'power2.out'], [33, 0.9], [38, 0.35], [47, 0], [183.8, 0], [186, 1, 'power2.out'], [191, 0.9], [194, 0.4], [198, 0]],
+  embers: [[15, 0], [20, 0.55], [27.5, 1], [34, 0.85], [40, 0.45], [50, 0], [183.8, 0], [186, 0.9], [192, 1], [196, 0.5], [200, 0]],
+  smoke: [[17, 0], [23, 0.45], [30, 0.7], [40, 0.55], [52, 0], [183.8, 0], [186, 0.5], [192, 0.65], [198, 0.3], [202, 0]],
   // "ghosts in my world / your spirit became a phantom in mine"
   ghost: [[34.5, 0], [37, 0.55], [41.2, 0.35], [43, 0.6], [46.5, 1], [50.5, 0.35], [53.5, 0]],
 
@@ -88,7 +92,8 @@ export const TRACKS = {
   // VI — "My faith sheltered your flame … Scorching my hands"
   flame: [[191.5, 0], [194, 1], [201, 0.85], [205.28, 1.25], [209, 0.6], [214, 0.45], [222, 0]],
   heat: [[204.68, 0], [205.78, 1], [209.2, 0.35], [212, 0]],
-  embersNear: [[204.68, 0], [205.68, 1], [209.5, 0.4], [213, 0]],
+  // embers right in front of you on "My faith…"
+  embersNear: [[192.6, 0], [193.6, 1], [197.4, 0.4], [201, 0]],
 
   // VII — "Not realizing I'd abandoned myself"
   drain: [[207, 0], [214, 0.45], [226, 1]],

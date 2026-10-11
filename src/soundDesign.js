@@ -37,7 +37,9 @@ export const BEDS = {
       [185.5, 0], [190, 0.03], [212, 0.05], [222, 0.07], [234, 0.04], [241.5, 0]] },
   // "our summer's bridge burned … amidst a wildfire" — far off, on the ridge ahead
   fire: { lp: 2200, az: -8, spread: 50, dist: 9, y: 1,
-    gain: [[16, 0], [20, 0.05], [27, 0.08], [28.5, 0.09], [34, 0.075], [41, 0.05], [51, 0]] },
+    gain: [[16, 0], [20, 0.05], [27, 0.08], [28.5, 0.09], [34, 0.075], [41, 0.05], [51, 0],
+      // burning again as the world comes back after the panic attack, a little nearer than the first time
+      [183.8, 0], [186, 0.12], [190, 0.13], [194, 0.07], [198, 0]] },
   // the lake: barely there, a little more as it becomes a mirror and the tides turn. Wide, in front, below.
   lake: { lp: 1600, az: 0, spread: 140, dist: 3, y: -1.5,
     gain: [[0, 0.04], [18, 0.03], [52, 0.03], [57, 0.08], [73, 0.1], [81, 0.15], [90, 0.13], [96, 0.04], [127, 0.04], [136, 0.07], [161.5, 0.05], [162.2, 0],
@@ -51,9 +53,9 @@ export const BEDS = {
   // "put in sand"
   sand: { lp: 6000, az: [[112, -25], [119, 30]], spread: 0, dist: 0.9, y: -0.7,
     gain: [[111.4, 0], [112.6, 0.2], [117, 0.22], [119.3, 0.06], [121, 0]] },
-  // "scorching my hands": close crackle, and the sheltered flame before it — in your hands
+  // "My faith sheltered your flame": close crackle with the embers, then the sheltered flame — in your hands
   embers: { lp: 4500, az: 0, spread: 90, dist: 0.5, y: -0.4,
-    gain: [[192, 0], [194.5, 0.03], [204.58, 0.04], [205.68, 0.22], [209.5, 0.08], [213.5, 0]] },
+    gain: [[192.5, 0], [193.6, 0.3], [197.4, 0.12], [201, 0.04], [209, 0.03], [213.5, 0]] },
 };
 
 // ---------- the coda ----------
