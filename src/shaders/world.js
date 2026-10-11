@@ -135,8 +135,8 @@ Glass glass(vec2 s) {
 }
 
 // ---------- blood running down the glass: "I'd bleed on your absence behind the pane" ----------
-// Trickles start around the impact and run down the pane in stops and slips: a heavier bead at
-// the tip pauses, then slides on, leaving a thinner trail. uBloodRun (0..1) is how far along the
+// Thin trickles leak out of the cracks around the impact and creep slowly, smoothly down the pane,
+// a bead at each tip, leaving a thinner trail. uBloodRun (0..1) is how far along the
 // run is, so scrubbing lands on the same frame. Shaded as thick, glossy liquid: a dark rim, a deep
 // translucent core with the scene glowing through, and a highlight that rides down with the tip.
 // Returns the blood's colour and coverage.
@@ -166,12 +166,10 @@ vec4 bloodRun(vec2 s, vec3 bg) {
     float start = h2.y * 0.45;
     float q = clamp((uBloodRun - start) / (1.0 - start), 0.0, 1.0);
     if (q <= 0.0) continue;
-    float steps = 3.0 + floor(h3.x * 4.0);
-    float x = q * steps;
-    float run = (floor(x) + smoothstep(0.55, 1.0, fract(x))) / steps; // pause, then slip
-    float L = (0.22 + 0.55 * h3.y) * (0.5 + 0.5 * near) * run;
+    float run = q * (0.85 + 0.3 * h3.x) / 1.15;            // a steady creep, each at its own pace
+    float L = (0.1 + 0.26 * h3.y) * (0.5 + 0.5 * near) * run;
     float yTip = y0 - L;
-    float w0 = 0.0038 + 0.0055 * h1.x * h3.y + 0.0015 * near;
+    float w0 = 0.0021 + 0.0018 * h1.x * h3.y + 0.0006 * near;
 
     // the trail, thinner where it's older
     if (p.y <= y0 && p.y >= yTip) {
@@ -191,7 +189,7 @@ vec4 bloodRun(vec2 s, vec3 bg) {
     }
     // the bead at the tip, heavier while it waits
     float bx = cx + (vnoise(vec2(yTip * 6.0, c)) - 0.5) * 0.026 + sin(yTip * 17.0 + c) * 0.002;
-    float rb = w0 * (1.25 + 0.5 * (1.0 - smoothstep(0.55, 1.0, fract(x)))) * min(1.0, q * 10.0);
+    float rb = w0 * 1.5 * min(1.0, q * 10.0);
     vec2 e = (p - vec2(bx, yTip + rb * 0.3)) / vec2(rb, rb * 1.3);
     float r2 = dot(e, e);
     if (r2 < 1.0) {
