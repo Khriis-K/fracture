@@ -157,7 +157,47 @@ function listenForTilt() {
 let started = false;
 let ending = false; // the song has finished; the lake plays on in the dark
 let codaTimer;
-const pre = { k: 1 }; // blend from the idle intro look into the film
+const pre = { k: 1, lift: 0 }; // blend from the idle intro look into the film; lift: the scene waking on Begin
+
+// ---------- the title page ----------
+// Every so often a hairline crack runs through "Fracture", the halves slip a hair apart, then it seals.
+const introTitle = $('#intro .intro-title');
+const crack = (() => {
+  if (reducedMotion) return null;
+  const word = introTitle.textContent.trim();
+  introTitle.setAttribute('aria-label', word);
+  introTitle.innerHTML = `<span class="ct-top" aria-hidden="true">${word}</span><span class="ct-bot" aria-hidden="true">${word}</span>`
+    + `<span class="ct-wrap" aria-hidden="true"><span class="ct-seam">${word}</span></span>`;
+  const [top, bot, wrap] = introTitle.children;
+  let call = null, tl = null;
+  const run = () => {
+    const off = parseFloat(getComputedStyle(introTitle).fontSize) * 0.022;
+    tl = gsap.timeline({ onComplete: () => { call = gsap.delayedCall(6 + Math.random() * 5, run); } })
+      .set(wrap, { clipPath: 'inset(0 100% 0 0)', opacity: 1 })
+      .to(wrap, { clipPath: 'inset(0 0% 0 0)', duration: 0.34, ease: 'power2.in' })
+      .to(top, { x: -off, y: -off * 0.7, duration: 0.2, ease: 'expo.out' }, 0.3)
+      .to(bot, { x: off, y: off * 0.7, duration: 0.2, ease: 'expo.out' }, 0.3)
+      .to([top, bot], { x: 0, y: 0, duration: 1.6, ease: 'sine.inOut' }, 1.7)
+      .to(wrap, { opacity: 0, duration: 1.8, ease: 'sine.inOut' }, 1.6);
+  };
+  call = gsap.delayedCall(2.5, run);
+  return { stop() { call?.kill(); tl?.kill(); } };
+})();
+
+// Far-off lightning inside the clouds, in the part of the sky the title card leaves visible.
+const bolt = { x: 0.5, y: 0.7, z: 0, next: performance.now() / 1000 + 3 };
+function lightning(now) {
+  if (reducedMotion || now < bolt.next) return;
+  bolt.next = now + 8 + Math.random() * 7;
+  bolt.x = 0.3 + Math.random() * 0.4;
+  bolt.y = 0.6 + Math.random() * 0.2;
+  const strong = 1.0 + Math.random() * 0.6;
+  gsap.timeline()
+    .to(bolt, { z: strong, duration: 0.04, ease: 'none' })
+    .to(bolt, { z: strong * 0.15, duration: 0.12, ease: 'power2.out' })
+    .to(bolt, { z: strong * 0.75, duration: 0.04, ease: 'none' }, '+=0.06')
+    .to(bolt, { z: 0, duration: 0.7, ease: 'power2.out' });
+}
 const playBtn = $('#play');
 const scrub = $('#scrub');
 const fmt = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
@@ -184,7 +224,7 @@ check.addEventListener('click', () => {
   }).catch(() => {}).finally(() => { check.textContent = label; check.disabled = false; });
 });
 
-$('#begin').addEventListener('click', () => {
+$('#begin').addEventListener('click', (e) => {
   // fullscreen has to be asked for inside the click, before anything else
   if (!studio && !document.fullscreenElement) {
     document.documentElement.requestFullscreen?.({ navigationUI: 'hide' })?.catch(() => {});
@@ -193,8 +233,16 @@ $('#begin').addEventListener('click', () => {
   audio.currentTime = params.has('t') ? +params.get('t') : 0;
   play();
   listenForTilt();
+  // stepping in: a ripple spreads across the lake below where you tapped, and the title lifts away like breath off glass
+  crack?.stop();
+  const [ix] = world.screenToImage(e.clientX || innerWidth / 2, 0, innerWidth, innerHeight, current);
+  world.addRipple(ix, 0.19, 2.6);
+  setTimeout(() => world.addRipple(ix, 0.19, 1.2), 260);
+  gsap.timeline().to(pre, { lift: 1, duration: 0.5, ease: 'sine.out' }).to(pre, { lift: 0, duration: 1.8, ease: 'sine.in' }, 1.0);
+  setTimeout(() => soundscape.ripple(e.clientX ? e.clientX / innerWidth : 0.5, 0.6, 1.4), 60);
+  gsap.to(introTitle, { y: -26, opacity: 0, filter: 'blur(10px)', duration: 1.5, ease: 'power2.in' });
   $('#intro').classList.add('hidden');
-  gsap.to(pre, { k: 0, duration: 1.6, ease: 'sine.inOut' });
+  gsap.to(pre, { k: 0, duration: 2, delay: 0.9, ease: 'sine.inOut' });
   wake();
 });
 
@@ -364,9 +412,11 @@ function renderFrame() {
 
   // the idle look behind the title card: a dim, slowly boiling storm
   if (pre.k > 0) {
-    v.fade = v.fade * (1 - pre.k) + 0.62 * pre.k;
+    v.fade = v.fade * (1 - pre.k) + (0.62 - 0.3 * pre.lift) * pre.k;
     v.cloud = v.cloud * (1 - pre.k) + 0.35 * pre.k;
+    lightning(now);
   }
+  world.uniforms.uBolt.value.set(bolt.x, bolt.y, bolt.z * pre.k);
 
   // the pointer / tilt turns the listener's head; only the phone's tilt moves the picture
   pointer.sx += ((pointer.x - 0.5) - pointer.sx) * 0.03;

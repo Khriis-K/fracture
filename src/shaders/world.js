@@ -41,6 +41,7 @@ uniform float uSketch, uErase, uSand, uInk;
 uniform float uCrack, uGlassAlpha, uShatter, uFrost, uBleed, uBloodFilm;
 uniform vec2 uImpact;
 uniform float uRed, uPulse, uTunnel, uFlash;
+uniform vec3 uBolt; // lightning inside the clouds: screen x, y, strength
 uniform float uFlame, uHeat, uDrain;
 uniform vec4 uRipples[MAX_RIPPLES];
 
@@ -198,6 +199,13 @@ void main() {
   } else {
     vec2 suv = skyWarp(uv, ridge);
     col = tex(suv);
+  }
+
+  // ---------- lightning, far off inside the clouds (the title page) ----------
+  if (uBolt.z > 0.0) {
+    vec2 bd = (s - uBolt.xy) * vec2(aspect, 1.0);
+    float m = exp(-dot(bd, bd) * 5.0) * (0.45 + 0.9 * fbm(uv * 6.0 + uBolt.xy * 9.0));
+    col += (col * vec3(1.5, 1.6, 1.9) + vec3(0.03, 0.035, 0.05)) * m * uBolt.z * (isSky + (1.0 - isSky) * 0.15);
   }
 
   // ---------- frosted glass: "lest your light in the mirror grows opaque" ----------

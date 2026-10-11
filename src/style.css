@@ -173,6 +173,19 @@ html, body {
   line-height: 1;
 }
 .intro-title.small { font-size: clamp(44px, 7vw, 92px); }
+/* the title's hairline crack (main.js crackTitle): two halves along a jagged line, and the seam */
+#intro .intro-title { display: grid; }
+#intro .intro-title > * { grid-area: 1 / 1; display: block; }
+.ct-top { clip-path: polygon(0 0, 100% 0, 100% 50%, 82% 55%, 68% 48%, 55% 57%, 41% 49%, 27% 56%, 14% 47%, 0 52%); }
+.ct-bot { clip-path: polygon(0 52%, 14% 47%, 27% 56%, 41% 49%, 55% 57%, 68% 48%, 82% 55%, 100% 50%, 100% 100%, 0 100%); }
+.ct-wrap { clip-path: inset(0 100% 0 0); opacity: 0; }
+/* the crack itself: a dark gap through the letters */
+.ct-seam {
+  color: #050404;
+  text-shadow: none;
+  clip-path: polygon(0 50.6%, 14% 45.6%, 27% 54.6%, 41% 47.6%, 55% 55.6%, 68% 46.6%, 82% 53.6%, 100% 48.6%,
+    100% 51.4%, 82% 56.4%, 68% 49.4%, 55% 58.4%, 41% 50.4%, 27% 57.4%, 14% 48.4%, 0 53.4%);
+}
 
 .intro-date {
   margin: -6px 0 22px;

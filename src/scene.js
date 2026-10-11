@@ -55,6 +55,7 @@ export class World {
       uTime: { value: 0 }, uZoom: { value: 1 }, uFocus: { value: new THREE.Vector2(0.5, 0.5) },
       uShake: { value: new THREE.Vector2() }, uAudio: { value: 0 }, uBeat: { value: 0 },
       uImpact: { value: new THREE.Vector2(0.64, 0.6) }, uRipples: { value: ripples },
+      uBolt: { value: new THREE.Vector3() },
     };
     for (const k in UNIFORM_OF) u[UNIFORM_OF[k]] = { value: 0 };
     this.uniforms = u;
