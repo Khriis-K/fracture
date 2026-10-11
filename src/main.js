@@ -291,7 +291,7 @@ function showCursor() {
 }
 
 // ---------- touching the lake ----------
-const pointer = { x: 0.5, y: 0.5, sx: 0, sy: 0, lastTrail: 0 };
+const pointer = { x: 0.5, y: 0.5, sx: 0, lastTrail: 0 };
 let current = sampleTracks(0);
 canvas.addEventListener('pointerdown', (e) => {
   const [ix, iy] = world.screenToImage(e.clientX, e.clientY, innerWidth, innerHeight, current);
@@ -363,12 +363,8 @@ function renderFrame() {
     v.cloud = v.cloud * (1 - pre.k) + 0.35 * pre.k;
   }
 
-  // a breath of parallax from the pointer
+  // the pointer / tilt only turns the listener's head; the picture never pans
   pointer.sx += ((pointer.x - 0.5) - pointer.sx) * 0.03;
-  pointer.sy += ((pointer.y - 0.5) - pointer.sy) * 0.03;
-  const px = reducedMotion ? 0 : 0.006;
-  v.focusX += pointer.sx * px;
-  v.focusY -= pointer.sy * px * 0.6;
   pinImpact(t);
   current = v;
   // the listener's head turns a little with the pointer / the phone's tilt
