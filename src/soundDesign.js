@@ -96,6 +96,8 @@ const SHOTS = [
   // "until bone cracks"
   [HOLD_UNTIL, 'bone', { gain: 0.3, lp: 5000 }],
   [HOLD_UNTIL, 'thump', { gain: 0.28 }],
+  // the final chorus breaks the hush
+  [185.1, 'thunder', { gain: 0.12, offset: 12, dur: 11, pan: 0.35, lp: 700 }],
 ];
 
 // ---------- heartbeat ----------
