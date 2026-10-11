@@ -28,7 +28,7 @@ export const LINES = [
   { t: 96, e: 103.2, text: 'I was drawn till that night to be erased', cls: 'sketch', fx: [{ w: '*', fx: 'erase', at: 2.5 }] },
   { t: 104, e: 110.6, text: 'By impressions on paper, mere instinct', cls: 'sketch', fx: [{ w: '*', fx: 'inkIn', at: 0 }] },
   { t: 112, e: 119.2, text: 'Our prose and paintings / put in sand had shaped',
-    fx: [{ w: 'paintings', fx: 'painting' }, { w: '*', fx: 'sandTone', at: 1.6 }, { w: '*', fx: 'blowAway' }] },
+    fx: [{ w: 'sand', fx: 'sandGlint' }, { w: '*', fx: 'sandTone', at: 1.6 }, { w: '*', fx: 'blowAway' }] },
   { t: 120, e: 126.4, text: 'While you were aware I was writing in ink', fx: [{ w: 'ink', fx: 'inkBleed', at: 2.4 }, { w: '*', fx: 'permanent' }] },
 
   { t: 127, e: 130.7, text: 'But I won’t let your image break', fx: [{ w: 'break', fx: 'nearBreak' }] },
@@ -131,8 +131,9 @@ const FX = {
   inkIn(tl, { chars }) {
     tl.fromTo(chars, { color: 'rgba(239,230,218,0)' }, { color: 'rgba(239,230,218,0.95)', duration: 1.4, stagger: 0.07 }, 1.2);
   },
-  painting(tl, { word, at }) {
-    tl.to(word, { color: '#f2d27f', textShadow: '0px 0px 20px rgba(255,214,90,0.45), 0px 1px 2px rgba(0,0,0,0.5)', duration: 1.8 }, at);
+  // "sand": warm and grainy-bright, like the sand the shader turns the world to
+  sandGlint(tl, { word, at }) {
+    tl.to(word, { color: '#f0d29a', textShadow: '0px 0px 20px rgba(240,190,110,0.5), 0px 1px 2px rgba(0,0,0,0.5)', duration: 1.8 }, at);
   },
   sandTone(tl, { line, at }) {
     tl.to(line, { color: '#dcc19b', duration: 2 }, at);
