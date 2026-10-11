@@ -6,7 +6,7 @@ import { sampleTracks, DURATION, HITS } from './choreography.js';
 import { buildLyrics } from './lyrics.js';
 import { setupTheatre } from './theatre.js';
 import { Soundscape } from './audio.js';
-import { CODA } from './soundDesign.js';
+import { CODA, CHEST } from './soundDesign.js';
 
 const $ = (s) => document.querySelector(s);
 const params = new URLSearchParams(location.search);
@@ -67,6 +67,32 @@ function initAudioGraph() {
   } catch (e) {
     console.warn('Web Audio unavailable; playing the song untouched', e);
   }
+}
+
+// Build the graph (suspended) as the page opens, so the samples are decoded by the time Begin is tapped.
+initAudioGraph();
+
+// ---------- the title page's heartbeat ----------
+// A slow, deep heartbeat under the title. Browsers keep sound off until the page is first touched,
+// so it starts then; if that touch is Begin, it carries a few fading beats into the film's dark opening.
+const titleBeat = { on: false, next: 0, left: Infinity, gain: 1 };
+function startTitleBeat() {
+  if (titleBeat.on || started) return;
+  soundscape.resume();
+  titleBeat.on = true;
+  titleBeat.next = performance.now() / 1000 + 0.15;
+}
+addEventListener('pointerdown', startTitleBeat, { capture: true });
+addEventListener('keydown', startTitleBeat, { capture: true });
+function titleHeartbeat(now) {
+  if (!titleBeat.on || now < titleBeat.next) return;
+  if (titleBeat.left-- <= 0) { titleBeat.on = false; return; }
+  titleBeat.next += 60 / 54;
+  if (now > titleBeat.next) titleBeat.next = now + 60 / 54; // the tab was asleep
+  const g = titleBeat.gain;
+  soundscape.play('heartbeat', { gain: 0.24 * g, rate: 0.9, ...CHEST });
+  soundscape.play('heartSub', { gain: 0.42 * g, rate: 0.82, ...CHEST });
+  if (titleBeat.left !== Infinity) titleBeat.gain *= 0.6;
 }
 
 const sound = { level: 0, bass: 0, slow: 0, beat: 0, lastBeat: 0 };
@@ -239,7 +265,8 @@ $('#begin').addEventListener('click', (e) => {
   world.addRipple(ix, 0.19, 2.6);
   setTimeout(() => world.addRipple(ix, 0.19, 1.2), 260);
   gsap.timeline().to(pre, { lift: 1, duration: 0.5, ease: 'sine.out' }).to(pre, { lift: 0, duration: 1.8, ease: 'sine.in' }, 1.0);
-  setTimeout(() => soundscape.ripple(e.clientX ? e.clientX / innerWidth : 0.5, 0.6, 1.4), 60);
+  soundscape.play('crack', { gain: 0.7, offset: 0.13 });
+  if (titleBeat.on) { titleBeat.left = 3; titleBeat.gain *= 0.75; }
   gsap.to(introTitle, { y: -26, opacity: 0, filter: 'blur(10px)', duration: 1.5, ease: 'power2.in' });
   $('#intro').classList.add('hidden');
   gsap.to(pre, { k: 0, duration: 2, delay: 0.9, ease: 'sine.inOut' });
@@ -416,6 +443,7 @@ function renderFrame() {
     v.cloud = v.cloud * (1 - pre.k) + 0.35 * pre.k;
     lightning(now);
   }
+  titleHeartbeat(now);
   world.uniforms.uBolt.value.set(bolt.x, bolt.y, bolt.z * pre.k);
 
   // the pointer / tilt turns the listener's head; only the phone's tilt moves the picture

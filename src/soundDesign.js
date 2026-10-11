@@ -106,7 +106,7 @@ const SHOTS = [
 // It's heard from inside the chest: centred, just below the head and a little
 // in front, muffled the way sound through the body is, with none of the room's
 // reverb. On phones it's also felt (see the haptics section below).
-const CHEST = { pos: [0, -0.45, -0.12], lp: 900, dry: true };
+export const CHEST = { pos: [0, -0.45, -0.12], lp: 900, dry: true };
 // Each beat is the sample plus its body (audio.js heartSub), and the song ducks under it.
 function beat(out, b, gain, rate, body, pump) {
   out.push([b, 'heartbeat', { gain, rate, ...CHEST }]);
