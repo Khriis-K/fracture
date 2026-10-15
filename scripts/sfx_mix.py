@@ -22,14 +22,13 @@ for t, name, o in d['cues']:
     if name == 'thump':
         n = int(0.6*SR); u = np.arange(n)/SR; r = o.get('rate', 1)
         f = r*90*(32/90)**(np.minimum(u,0.35)/0.35); x = 0.9*np.sin(2*np.pi*np.cumsum(f)/SR)*np.exp(-u*9)
-    elif name == 'ring':
-        n = int(3.4*SR); u = np.arange(n)/SR
-        x = (np.sin(2*np.pi*3520*u) + np.sin(2*np.pi*3533*u)) * np.minimum(1, u/0.12) * np.exp(-u*2.05)
     else:
         if name not in cache: cache[name] = load(f'public/media/sfx/{name}.mp3')
         x = cache[name]
         off = int(o.get('offset',0)*SR); x = x[off: off+int(o['dur']*SR)] if o.get('dur') else x[off:]
     x = lp(x, o.get('lp', 0)) * o.get('gain', 1)
+    if o.get('env'):
+        k = np.array(o['env']); x = x * np.interp(np.arange(len(x))/SR, k[:,0], k[:,1], right=0)
     i = int(t*SR); j = min(N, i+len(x))
     (heart if name == 'heartbeat' else shots)[i:j] += x[:j-i]
 

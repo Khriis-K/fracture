@@ -1,10 +1,13 @@
 // The song runs through a small effects chain that follows the film:
 //
 //   song ─┬─ analyser (beat detection reads the clean song)
-//         └─ width (M/S) → lowpass → highpass → frost shelf → presence → level → dry ─┐
-//                                                                  └─ reverb → wet ────┼─ master → limiter → out
+//         └─ mixIn ─┬─ width (M/S) → lowpass → highpass → frost shelf → presence → level → dry ─┐
+//   instrumental ───┘     vocal → lp → 3D panner ─────────────────┘           └─ reverb → wet ────┼─ master → limiter → out
 //   beds (wind, fire, lake, paper…) → gain → L/R → 3D panners ─────┤
 //   one-shots + heartbeat + ripples → (3D panners) → sfx ──────────┘
+//
+// The stems stand in for the song for a few seconds (STEMS), so the voice
+// alone can move in 3D.
 //
 // Everything 3D is heard from one listener at the origin, facing -z, who turns
 // their head a little with the pointer (or the phone's tilt).
@@ -13,7 +16,7 @@
 // falls back to a synthesized stand-in (or silence), so the film never
 // depends on them.
 
-import { FILES, BEDS, CUES, CODA, envelope } from './soundDesign.js';
+import { FILES, BEDS, CUES, CODA, STEMS, envelope } from './soundDesign.js';
 import { Haptics } from './haptics.js';
 
 const lerp = (a, b, k) => a + (b - a) * k;
@@ -36,12 +39,13 @@ function hrtfPanner(ctx, refDistance) {
   return p;
 }
 
-function impulse(ctx, seconds = 3.6, decay = 2.6) {
-  const len = Math.floor(ctx.sampleRate * seconds);
+// swell: seconds the tail takes to rise, so the space blooms instead of starting at once
+function impulse(ctx, seconds = 3.6, decay = 2.6, swell = 0) {
+  const len = Math.floor(ctx.sampleRate * seconds), rise = swell * ctx.sampleRate;
   const buf = ctx.createBuffer(2, len, ctx.sampleRate);
   for (let c = 0; c < 2; c++) {
     const d = buf.getChannelData(c);
-    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decay);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decay) * (rise ? Math.min(1, i / rise) : 1);
   }
   return buf;
 }
@@ -92,7 +96,11 @@ export class Soundscape {
     const g = (v) => { const n = ctx.createGain(); n.gain.value = v; return n; };
     const lToMid = g(0.5), rToMid = g(0.5), lToSide = g(0.5), rToSide = g(-0.5);
     const mid = g(1), side = (this.side = g(1)), sideInv = g(-1);
-    src.connect(split);
+    // the song, or its instrumental stem while the voice moves on its own
+    this.mixIn = g(1);
+    this.songIn = split;
+    src.connect(this.mixIn);
+    this.mixIn.connect(split);
     split.connect(lToMid, 0); split.connect(rToMid, 1);
     split.connect(lToSide, 0); split.connect(rToSide, 1);
     lToMid.connect(mid); rToMid.connect(mid);
@@ -200,6 +208,7 @@ export class Soundscape {
   stopHaptics() { this.haptics.stop(); }
 
   async loadSamples() {
+    this.loadStems();
     await Promise.all(FILES.map(async (name) => {
       try {
         const res = await fetch(`${import.meta.env.BASE_URL}media/sfx/${name}.mp3`);
@@ -208,6 +217,114 @@ export class Soundscape {
         this.samples[name] = BEDS[name] ? makeLoop(this.ctx, buf) : buf;
       } catch { /* synthesized fallback */ }
     }));
+  }
+
+  async loadStems() {
+    try {
+      const bufs = await Promise.all(['vocals', 'instrumental'].map(async (name) => {
+        const res = await fetch(`${import.meta.env.BASE_URL}media/stems/${name}.flac`);
+        if (!res.ok) throw new Error(name);
+        return this.ctx.decodeAudioData(await res.arrayBuffer());
+      }));
+      this.stemBufs = { vocals: bufs[0], instrumental: bufs[1] };
+    } catch { /* the song plays through, the voice stays put */ }
+  }
+
+  // Swap the song for its stems from film time t (playing now) until STEMS.to.
+  // Everything is scheduled on the audio clock up front, so the fall is sample-exact.
+  startStems(t, now) {
+    const ctx = this.ctx, S = STEMS;
+    const at = now + 0.05, ft = t + 0.05; // a moment to set up
+    const when = (x) => at + (x - ft);
+    const g = (v) => { const n = ctx.createGain(); n.gain.value = v; return n; };
+    const src = (buf) => { const s = ctx.createBufferSource(); s.buffer = buf; return s; };
+
+    // equal-power swap: the stems differ from the master in the top end, so they don't sum like copies
+    const n = 32, IN = new Float32Array(n), OUT = new Float32Array(n);
+    for (let i = 0; i < n; i++) { const k = i / (n - 1); IN[i] = Math.sin(k * Math.PI / 2); OUT[i] = Math.cos(k * Math.PI / 2); }
+    const fadeIn = Math.max(at, when(S.from)), fadeOut = when(S.to);
+    const swap = (param, scale, a, b) => {
+      param.cancelScheduledValues(now);
+      if (fadeIn > at) param.setValueAtTime(a[0] * scale, at);
+      param.setValueCurveAtTime(a.map((v) => v * scale), fadeIn, S.xfade);
+      param.setValueCurveAtTime(b.map((v) => v * scale), fadeOut, S.xfade);
+    };
+    swap(this.mixIn.gain, 1, OUT, IN);
+    const instBus = g(0), voiceBus = g(0);
+    swap(instBus.gain, S.gain, IN, OUT);
+    swap(voiceBus.gain, S.gain, IN, OUT);
+
+    // under: the band steps back to make room for a word
+    const inst = src(this.stemBufs.instrumental), under = g(1);
+    inst.connect(instBus); instBus.connect(under); under.connect(this.songIn);
+
+    // the voice skips the song's width and muffle, but keeps its presence, level and pump
+    const voice = src(this.stemBufs.vocals);
+    const lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.Q.value = 0.7;
+    const p = hrtfPanner(ctx, 2);
+    const verb = g(0), lift = g(1);
+    voice.connect(voiceBus); voiceBus.connect(lift); lift.connect(lp); lp.connect(p); p.connect(this.presence);
+    p.connect(verb); verb.connect(this.reverb);
+
+    // punch: a parallel copy of the voice, bright and squashed flat, faded in on a word
+    // so it jumps forward without the rest of the line changing
+    const bite = ctx.createBiquadFilter();
+    bite.type = 'peaking';
+    bite.frequency.value = 3000;
+    bite.Q.value = 0.8;
+    bite.gain.value = 7;
+    const squash = ctx.createDynamicsCompressor();
+    squash.threshold.value = -30;
+    squash.knee.value = 6;
+    squash.ratio.value = 8;
+    squash.attack.value = 0.002;
+    squash.release.value = 0.12;
+    const punch = g(0);
+    lift.connect(bite); bite.connect(squash); squash.connect(punch); punch.connect(lp);
+
+    // bloom: the word thrown into a hall of its own, wide around you, that swells and hangs
+    // while the dry voice carries on over it
+    this.bloomIR ||= impulse(ctx, 4.5, 1.8, 0.12);
+    const bloomSend = g(0), hall = ctx.createConvolver(), dark = ctx.createBiquadFilter(), bloom = g(S.bloomGain);
+    hall.buffer = this.bloomIR;
+    dark.type = 'lowpass';
+    dark.frequency.value = 5500;
+    voiceBus.connect(bloomSend); bloomSend.connect(hall); hall.connect(dark); dark.connect(bloom); bloom.connect(this.master);
+
+    // ride the keys from where we are
+    const keys = (param, list, i, exp) => {
+      param.setValueAtTime(envelope(list.map((k) => [k[0], k[i]]), ft), at);
+      for (const k of list) if (when(k[0]) > at) {
+        if (exp) param.exponentialRampToValueAtTime(k[i], when(k[0]));
+        else param.linearRampToValueAtTime(k[i], when(k[0]));
+      }
+    };
+    if (p.positionX) {
+      keys(p.positionX, S.pos, 1); keys(p.positionY, S.pos, 2); keys(p.positionZ, S.pos, 3);
+    } else p.setPosition(...S.pos[0].slice(1));
+    keys(lp.frequency, S.lp, 1, true);
+    keys(verb.gain, S.verb, 1);
+    keys(lift.gain, S.lift, 1);
+    keys(punch.gain, S.punch, 1);
+    keys(under.gain, S.under, 1);
+    keys(bloomSend.gain, S.bloom, 1);
+
+    const offset = ft - S.clip, stop = fadeOut + S.xfade + 0.05;
+    inst.start(at, offset); voice.start(at, offset);
+    inst.stop(stop); voice.stop(stop);
+    this.stem = { at, ft, srcs: [inst, voice], buses: [instBus, voiceBus, bloom] };
+  }
+
+  // on pause or seek: back to the song at once
+  stopStems(now) {
+    const { srcs, buses } = this.stem;
+    this.stem = null;
+    for (const s of srcs) { try { s.stop(now + 0.05); } catch { /* already done */ } }
+    for (const b of buses) { b.gain.cancelScheduledValues(now); b.gain.setTargetAtTime(0, now, 0.01); }
+    this.mixIn.gain.cancelScheduledValues(now);
+    this.mixIn.gain.setTargetAtTime(1, now, 0.01);
   }
 
   // Called every frame with the choreography values.
@@ -245,6 +362,20 @@ export class Soundscape {
       if (coda !== null) target = name === CODA.bed ? envelope(CODA.gain, coda) : 0;
       bed.gain.gain.setTargetAtTime(target, now, playing || coda !== null ? 0.12 : 0.25);
       this.placeBed(bed, def, t, now);
+    }
+
+    // the stems: start a moment before the swap, drop them if the film jumps or pauses
+    if (this.stem) {
+      const drift = Math.abs(t - (this.stem.ft + (now - this.stem.at)));
+      if (!playing || drift > 0.1 || now > this.stem.at + (STEMS.to + STEMS.xfade - this.stem.ft)) this.stopStems(now);
+    }
+    if (!this.stem && playing && this.stemBufs && t > STEMS.from - 0.6 && t < STEMS.to - 0.3 && t - this.lastT < 0.5) {
+      this.startStems(t, now);
+    }
+
+    if (this.long?.length && (!playing || t < this.lastT || t - this.lastT > 0.5)) {
+      for (const { out } of this.long) { out.gain.cancelScheduledValues(now); out.gain.setTargetAtTime(0, now, 0.05); }
+      this.long = [];
     }
 
     // cues fire only during normal forward playback, never on a seek
@@ -317,7 +448,9 @@ export class Soundscape {
   }
 
   // dry: skip the reverb (sounds from inside the body). pump: duck the song (dB) under it
-  play(name, { gain = 1, pos = null, rate = 1, offset = 0, dur, pan = 0, lp = 0, dry = false, pump = 0 } = {}) {
+  // path: [[dt, x, y, z], ...] moves the sound from where it starts (dt in seconds after it starts)
+  // env: [[dt, g], ...] shapes its gain (× gain); panPath: [[dt, pan], ...] swings it between the ears
+  play(name, { gain = 1, pos = null, path = null, env = null, panPath = null, rate = 1, offset = 0, dur, pan = 0, lp = 0, dry = false, pump = 0 } = {}) {
     if (!this.ctx) return;
     const ctx = this.ctx;
     const bus = dry ? this.sfxDry : this.sfx;
@@ -325,6 +458,15 @@ export class Soundscape {
     if (pump) this.pump(t0, pump);
     const out = ctx.createGain();
     out.gain.value = gain;
+    if (env) {
+      out.gain.setValueAtTime(gain * env[0][1], t0);
+      for (const [dt, g] of env.slice(1)) out.gain.linearRampToValueAtTime(gain * g, t0 + dt);
+    }
+    // a long sound mustn't outlive a pause or a seek (see update)
+    if (dur > 3) {
+      this.long = (this.long || []).filter((n) => n.until > t0);
+      this.long.push({ out, until: t0 + dur });
+    }
     let input = out;
     if (lp) {
       input = ctx.createBiquadFilter();
@@ -332,14 +474,22 @@ export class Soundscape {
       input.frequency.value = lp;
       input.connect(out);
     }
+    if (path) pos = path[0].slice(1);
     if (pos) {
       const p = hrtfPanner(ctx, 2);
-      if (p.positionX) { p.positionX.value = pos[0]; p.positionY.value = pos[1]; p.positionZ.value = pos[2]; }
-      else p.setPosition(...pos);
+      if (p.positionX) {
+        const axes = [p.positionX, p.positionY, p.positionZ];
+        axes.forEach((a, i) => a.setValueAtTime(pos[i], t0));
+        if (path) for (const [dt, ...xyz] of path.slice(1)) axes.forEach((a, i) => a.linearRampToValueAtTime(xyz[i], t0 + dt));
+      } else p.setPosition(...pos);
       out.connect(p); p.connect(bus);
-    } else if (pan) {
+    } else if (pan || panPath) {
       const p = ctx.createStereoPanner();
       p.pan.value = pan;
+      if (panPath) {
+        p.pan.setValueAtTime(panPath[0][1], t0);
+        for (const [dt, v] of panPath.slice(1)) p.pan.linearRampToValueAtTime(v, t0 + dt);
+      }
       out.connect(p); p.connect(bus);
     } else out.connect(bus);
 
@@ -350,14 +500,16 @@ export class Soundscape {
       s.playbackRate.value = rate;
       s.connect(input);
       if (dur) {
-        // play a slice with a short fade so it never clicks
-        out.gain.setValueAtTime(gain, t0 + Math.max(0, dur / rate - 0.4));
-        out.gain.linearRampToValueAtTime(0, t0 + dur / rate);
+        // play a slice with a short fade so it never clicks (an env does its own)
+        if (!env) {
+          out.gain.setValueAtTime(gain, t0 + Math.max(0, dur / rate - 0.4));
+          out.gain.linearRampToValueAtTime(0, t0 + dur / rate);
+        }
         s.start(t0, offset, dur);
       } else s.start(t0, offset);
       return;
     }
-    SYNTH[name]?.(ctx, input, t0, rate);
+    SYNTH[name]?.(ctx, input, t0, rate, dur);
   }
 }
 
@@ -462,6 +614,26 @@ const SYNTH = {
     e.gain.exponentialRampToValueAtTime(0.001, t + 0.6);
     o.connect(e); e.connect(out);
     o.start(t); o.stop(t + 0.65);
+  },
+  // the ringing turning rough: noise through a band that climbs from 2 to 7 kHz, driven hard
+  // (dur is passed through rate: the climb takes as long as the cue)
+  grit(ctx, out, t, rate, dur = 3) {
+    const n = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * dur), ctx.sampleRate);
+    const d = n.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    const s = ctx.createBufferSource();
+    s.buffer = n;
+    const bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.Q.value = 1.4;
+    bp.frequency.setValueAtTime(2000, t);
+    bp.frequency.exponentialRampToValueAtTime(7000, t + dur);
+    const drive = ctx.createGain();
+    drive.gain.value = 4;
+    const shaper = ctx.createWaveShaper();
+    shaper.curve = driveCurve();
+    s.connect(bp); bp.connect(drive); drive.connect(shaper); shaper.connect(out);
+    s.start(t); s.stop(t + dur);
   },
   // the ears ringing after the bullet: two close high tones, beating, fading out
   ring(ctx, out, t) {

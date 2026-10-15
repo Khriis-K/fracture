@@ -12,11 +12,11 @@ import beatData from './beats.json';
 //   pencil    123jorre456 #46630       eraser     bdunis4 #271470
 //   sand      nicoproson #627070       page       mmaruska #177867
 //   whoosh    hnhnh #244926            crack      o_ciz #475443
-//   bone      bewareofkites20 #147993
+//   bone      bewareofkites20 #147993  ring       SomeOrdinaryDude #738245
 
 export const FILES = [
   'drop', 'heartbeat', 'wind', 'thunder', 'fire', 'embers', 'lake', 'pencil', 'eraser',
-  'sand', 'page', 'whoosh', 'crack', 'bone',
+  'sand', 'page', 'whoosh', 'crack', 'bone', 'ring',
 ];
 
 // ---------- ambience beds (looping) ----------
@@ -67,6 +67,42 @@ export const CODA = { bed: 'lake', outroAt: 7, gain: [[0, 0], [2.5, 0.05], [8, 0
 // the held buzz, "bul" → "cracks"
 const HOLD_FROM = 172.939, HOLD_UNTIL = 181.97;
 
+// ---------- the falling voice ----------
+// "My ribs draw tight, my lungs collapse": the voice rises over your head and,
+// on "collapse", drops to the floor while the band stays where it is.
+// For this stretch the song is swapped for its stems (public/media/stems/,
+// cut from assets/fracture_audio_{vocals,instrumental}.wav, 164–174 s; vocals
+// mono), so only the voice moves. The swaps hide under the "attack" hit and
+// the "bul" hit, where the song dips and a thump covers the join.
+//   pos: [[t, x, y, z]] metres around the listener (y up, -z ahead), kept
+//        within 2 m so the move changes direction, not loudness
+//   lp: the voice's own muffle, in place of the song's (it skips the song's
+//       low-pass, so it stays clear overhead while the band is under water)
+//   verb: extra reverb on the voice, the tail it leaves as it falls
+//   lift: the voice's own gain, to lean into a word
+//   punch: a bright, squashed copy of the voice laid on top, so a word jumps forward
+//   under: the band's gain, to step back from a word (the song is already at the limiter,
+//          so a word gets louder by the band making room)
+//   bloom: how much of the voice goes into its own big hall (bloomGain: the hall's level)
+export const STEMS = {
+  clip: 164, from: 165.4, to: 172.9, xfade: 0.1,
+  gain: 0.75, // the stems sum ~2.4 dB hotter than the mastered song
+  pos: [[165.4, 0, 0.3, -1.6], [165.6, 0, 0.5, -1.4], [166.4, 0, 1.6, -0.7], [169.35, 0, 1.75, -0.5],
+    // it falls like a weight: slow off the top, fast at the floor
+    [169.42, 0, 1.45, -0.55], [169.49, 0, 0.6, -0.65], [169.56, 0, -0.9, -0.7], [169.62, 0, -1.8, -0.6],
+    // "Every heartbeat strikes a bullet impact": it climbs back to the front for "bul"
+    [170.6, 0, -1.7, -0.7], [172.5, 0, 0, -1.5], [172.9, 0, 0.3, -1.6]],
+  lp: [[165.4, 20000], [167.2, 9000], [169.35, 9000], [169.62, 700], [170.6, 900], [172.6, 6000], [172.9, 20000]],
+  verb: [[165.4, 0], [169.35, 0], [169.5, 0.6], [171, 0.1], [172.9, 0]],
+  // "at-TACK": the stressed syllable hits you in the face, then blooms into a hall that hangs
+  // under "My ribs draw tight". Only "-tack" goes into the hall.
+  lift: [[165.4, 1], [165.62, 1], [165.66, 1.4], [165.9, 1.2], [166.3, 1]],
+  punch: [[165.4, 0], [165.62, 0], [165.65, 1.6], [165.9, 1.1], [166.25, 0]],
+  under: [[165.4, 1], [165.62, 1], [165.65, 0.55], [165.95, 0.7], [166.4, 1]],
+  bloom: [[165.4, 0], [165.62, 0], [165.65, 1], [165.95, 1], [166.04, 0]],
+  bloomGain: 1.5,
+};
+
 // ---------- one-shots ----------
 // [t, sound, { gain, offset (s into the file), dur, rate, pan, lp }]
 const SHOTS = [
@@ -84,15 +120,16 @@ const SHOTS = [
   // "In choosing the window to break your chain" — the pane gives way
   [152.55, 'crack', { gain: 0.3, rate: 0.82, lp: 4200 }],
   [152.75, 'crack', { gain: 0.14, rate: 1.08, lp: 4200, pan: 0.3 }],
-  // "under attack": a sub hit with the word breaking out (see lyrics.js HEROES)
-  [165.5, 'thump', { gain: 0.45, rate: 0.9 }],
-  // "my lungs collapse": a dull, low give, as the air goes out
-  [169.35, 'thump', { gain: 0.3, rate: 0.6 }],
+  // "under attack" has no hit of its own: the voice itself punches and blooms (STEMS)
+  // "my lungs collapse": a rush that drops past you with the voice (STEMS), then a dull,
+  // low give at your feet as the air goes out
+  [169.2, 'whoosh', { gain: 0.09, rate: 0.7, lp: 3000, dur: 1.4,
+    path: [[0, 0, 2.2, -0.4], [0.15, 0, 1.6, -0.5], [0.3, 0, 0.2, -0.6], [0.42, 0, -1.9, -0.5], [1.4, 0, -2, -0.4]] }],
+  [169.35, 'thump', { gain: 0.3, rate: 0.6, pos: [0, -1.6, -0.5] }],
   // "Every heartbeat strikes a bullet impact": the line swells and the hit lands
   // on "bul", with the song's own heartbeat (see choreography.js).
   [HOLD_FROM, 'thump', { gain: 0.6, rate: 0.72 }],
   [HOLD_FROM - 0.05, 'thunder', { gain: 0.32, offset: 2.6, dur: 3.2, lp: 450 }],
-  [HOLD_FROM + 0.04, 'ring', { gain: 0.016 }],
   // "until bone cracks"
   [HOLD_UNTIL, 'bone', { gain: 0.3, lp: 5000 }],
   [HOLD_UNTIL, 'thump', { gain: 0.28 }],
@@ -161,7 +198,46 @@ shape(HOLD_FROM, HOLD_UNTIL, (t) => {
   return 0.35 + 0.65 * p * p;
 });
 
-export const CUES = [...SHOTS, ...heartbeats()].sort((a, b) => a[0] - b[0]);
+// ---------- the ears ringing, "bul" → "cracks" ----------
+// It swells in out of the hit, throbs three times (a bar each, swinging from
+// one ear to the other), then turns rough and climbs until it's cut dead on
+// "cracks". env: [[dt, gain]] after the cue starts; panPath: [[dt, pan]].
+function ringing() {
+  const beats = beatData.beats;
+  const i0 = beats.findIndex((b) => b > HOLD_FROM - 0.1);
+  const bar = (n) => beats[i0 + 4 * n]; // 172.92, 174.95, 177.01, 179.03
+  const peaks = [0, 1, 2].map((n) => (bar(n) + bar(n + 1)) / 2);
+  const rough = bar(3), end = HOLD_UNTIL - HOLD_FROM;
+  // the shape, keyed in film time, eased between keys
+  const keys = [[HOLD_FROM, 0], [peaks[0], 1], [bar(1), 0.35], [peaks[1], 1], [bar(2), 0.35], [peaks[2], 1], [rough, 0.5], [HOLD_UNTIL - 0.05, 1]];
+  const shape = (t) => {
+    let k = 1;
+    while (k < keys.length - 1 && t > keys[k][0]) k++;
+    const [t0, g0] = keys[k - 1], [t1, g1] = keys[k];
+    const x = Math.min(1, Math.max(0, (t - t0) / (t1 - t0)));
+    // throbs ease in and out; the rough climb gathers speed
+    return g0 + (g1 - g0) * (t >= rough ? x * x : (1 - Math.cos(Math.PI * x)) / 2);
+  };
+  // one ear, then the other, a bar each; quicker and narrower once it turns rough
+  const pan = (t) => (t < rough ? -0.6 * Math.sin((Math.PI * (t - HOLD_FROM)) / (bar(1) - bar(0))) : 0.3 * Math.sin((Math.PI * 2 * (t - rough)) / 0.5));
+  const env = [], panPath = [];
+  for (let dt = 0; dt < end - 0.05; dt += 0.05) {
+    env.push([dt, shape(HOLD_FROM + dt)]);
+    panPath.push([dt, pan(HOLD_FROM + dt)]);
+  }
+  env.push([end - 0.05, 1], [end, 0]); // cut dead on "cracks"
+  const gritLen = HOLD_UNTIL - rough, gritEnv = [];
+  for (let dt = 0; dt < gritLen - 0.05; dt += 0.1) gritEnv.push([dt, (dt / gritLen) ** 2]);
+  gritEnv.push([gritLen - 0.05, 1], [gritLen, 0]);
+  return [
+    // dry: it's inside your head, and no room tail may blur the cut
+    [HOLD_FROM, 'ring', { gain: 0.15, env, panPath, dur: end + 0.05, dry: true }],
+    // the roughness: noise that brightens and distorts as it climbs (audio.js SYNTH.grit)
+    [rough, 'grit', { gain: 0.05, env: gritEnv, dur: gritLen, dry: true }],
+  ];
+}
+
+export const CUES = [...SHOTS, ...heartbeats(), ...ringing()].sort((a, b) => a[0] - b[0]);
 
 export function hapticAt(t) {
   let s = 0;
