@@ -50,7 +50,7 @@ export const TRACKS = {
   burn: [[14, 0], [18.5, 0.45], [22, 0.75], [27, 0.85], [31, 1], [36, 0.6], [44, 0.3], [52, 0.12], [60, 0],
     [183.8, 0], [186, 0.85], [190, 1], [204.6, 0.9], [205.7, 1], [209, 0.8], [213.5, 0]],
   wildfire: [[23, 0], [27.4, 1, 'power2.out'], [33, 0.9], [38, 0.35], [47, 0], [183.8, 0], [186, 1, 'power2.out'], [191, 0.9], [204.6, 0.85], [205.7, 1.1, 'expo.out'], [209, 0.9], [213, 0]],
-  embers: [[15, 0], [20, 0.55], [27.5, 1], [34, 0.85], [40, 0.45], [50, 0], [183.8, 0], [186, 0.9], [192, 1], [204.6, 0.9], [205.7, 1.4, 'expo.out'], [209, 1], [213, 0]],
+  embers: [[15, 0], [20, 0.55], [27.5, 1], [34, 0.85], [40, 0.45], [50, 0], [183.8, 0], [186, 0.9], [193, 1], [196.7, 1.4], [204.6, 1.3], [208.5, 0.9], [213, 0]],
   smoke: [[17, 0], [23, 0.45], [30, 0.7], [40, 0.55], [52, 0], [183.8, 0], [186, 0.5], [192, 0.65], [209, 0.6], [213.5, 0]],
   // "ghosts in my world / your spirit became a phantom in mine"
   ghost: [[34.5, 0], [37, 0.55], [41.2, 0.35], [43, 0.6], [46.5, 1], [50.5, 0.35], [53.5, 0]],
@@ -101,9 +101,10 @@ export const TRACKS = {
   // VI — "My faith sheltered your flame … Scorching my hands"
   flame: [[191.5, 0], [194, 1], [201, 0.85], [205.28, 1.25], [209, 0.6], [214, 0.45], [222, 0]],
   heat: [[204.68, 0], [205.78, 1], [209.2, 0.35], [212, 0]],
-  // embers right in front of you on "My faith…", then a storm of them on "Scorching my hands"
-  // (above 1, more of them come close), dissipating through "Selflessly staying…"
-  embersNear: [[192.6, 0], [193.6, 1], [197.4, 0.45], [204.6, 0.4], [205.68, 2.2, 'expo.out'], [209, 1.3], [213, 0]],
+  // a storm of embers right in front of you, gathering through "My faith sheltered your flame…"
+  // (above 1, more of them come close), held to 204.6 (just before "Scorching my hands"), then dissipating back to
+  // a few close ones, gone by the end of "Selflessly staying…"
+  embersNear: [[192.8, 0], [196.7, 2.2], [204.6, 1.9], [208.5, 0.4], [213, 0]],
 
   // VII — "Not realizing I'd abandoned myself"
   drain: [[207, 0], [214, 0.45], [226, 1]],

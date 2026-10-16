@@ -53,9 +53,9 @@ export const BEDS = {
   // "put in sand"
   sand: { lp: 6000, az: [[112, -25], [119, 30]], spread: 0, dist: 0.9, y: -0.7,
     gain: [[111.4, 0], [112.6, 0.2], [117, 0.22], [119.3, 0.06], [121, 0]] },
-  // close crackle with the embers: "My faith…", then loudest on "Scorching my hands" — in your hands
+  // close crackle with the embers: swelling through "My faith…", fading from 204.6 — in your hands
   embers: { lp: 4500, az: 0, spread: 90, dist: 0.5, y: -0.4,
-    gain: [[192.5, 0], [193.6, 0.3], [197.4, 0.15], [204.58, 0.14], [205.68, 0.42], [209, 0.24], [213.5, 0]] },
+    gain: [[192.8, 0], [196.7, 0.42], [204.6, 0.38], [208.5, 0.14], [213.5, 0]] },
 };
 
 // ---------- the coda ----------
@@ -117,9 +117,6 @@ const SHOTS = [
   // with a lower layer for weight. offset skips the file's 0.13 s of lead-in, so it lands on the beat.
   [135, 'crack', { gain: 1, offset: 0.13 }],
   [135, 'crack', { gain: 0.55, offset: 0.13, rate: 0.78, lp: 3500 }],
-  // "In choosing the window to break your chain" — the pane gives way
-  [152.55, 'crack', { gain: 0.3, rate: 0.82, lp: 4200 }],
-  [152.75, 'crack', { gain: 0.14, rate: 1.08, lp: 4200, pan: 0.3 }],
   // "under attack" has no hit of its own: the voice itself punches and blooms (STEMS)
   // "my lungs collapse": a rush that drops past you with the voice (STEMS), then a dull,
   // low give at your feet as the air goes out
