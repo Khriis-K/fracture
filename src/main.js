@@ -470,7 +470,9 @@ function renderFrame() {
   current = v;
   // the listener's head turns a little with the pointer / the phone's tilt
   soundscape.setHeading(pointer.sx * 0.35);
-  soundscape.update(v, t, started && !audio.paused);
+  // a seek or a stall counts as paused: the song is silent and t isn't moving, so the
+  // stems would otherwise be torn down and restarted at the same spot every frame or so
+  soundscape.update(v, t, started && !audio.paused && !audio.seeking && audio.readyState >= 3);
 
   const beat = sound.beat;
   world.render(v, { time: wt, audio: sound.level, beat });
